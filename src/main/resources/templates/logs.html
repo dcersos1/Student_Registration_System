@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Management</title>
+    <style>
+        body {
+            text-align: center; /* Centers the content of the body */
+        }
+        table {
+            margin-left: auto; /* Centers the table horizontally */
+            margin-right: auto;
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid black; /* Ensures the border is visible */
+        }
+        th {
+            text-align: left; /* Ensures header texts are aligned to the left */
+        }
+    </style>
+</head>
+<body>
+<h1>Log Management</h1>
+<button onclick="loadLogs()">Refresh Logs</button>
+<table id="logsTable">
+    <thead>
+    <tr>
+        <th>Log Number</th>
+        <th>User Name</th>
+        <th>Operation Time</th>
+        <th>Table Name</th>
+        <th>Operation</th>
+        <th>Tuple Key Value</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Logs will be loaded here dynamically -->
+    </tbody>
+</table>
+
+<script>
+    window.onload = function() {
+        loadLogs();
+    };
+
+    function loadLogs() {
+        fetch('/logs/view')
+            .then(response => response.json())
+            .then(data => {
+                console.log("here");
+                const table = document.getElementById('logsTable').getElementsByTagName('tbody')[0];
+                table.innerHTML = ''; // Clear previous rows
+
+                if (data.length > 0) {
+                    // Sort logs by 'logNumber' in ascending order
+                    data.sort((a, b) => a.logNumber - b.logNumber);
+
+                    data.forEach(log => {
+                        let row = table.insertRow();
+                        console.log(log);
+                        row.insertCell(0).innerHTML = log.logNumber;
+                        row.insertCell(1).innerHTML = log.userName;
+                        row.insertCell(2).innerHTML = new Date(log.operationTime).toLocaleString();
+                        row.insertCell(3).innerHTML = log.tableName;
+                        row.insertCell(4).innerHTML = log.operation;
+                        row.insertCell(5).innerHTML = log.tupleKeyValue;
+                    });
+                }
+            })
+            .catch(error => console.error('Error loading logs:', error));
+    }
+
+</script>
+</body>
+</html>

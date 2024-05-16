@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .table, .table th, .table td {
+            border: 1px solid #dee2e6; /* Bootstrap's default border color */
+        }
+        .table th {
+            background-color: #f8f9fa; /* Light gray background for headers */
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        .btn-custom {
+            margin-top: 10px;
+        }
+        h1, h2 {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<h1 class="mb-4">Student Management</h1>
+
+<!-- Form to add a new student -->
+<h2>Add New Student</h2>
+<form id="addStudentForm" class="mb-3">
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label for="id" class="form-label">B#:</label>
+            <input type="text" id="id" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+            <label for="firstName" class="form-label">First Name:</label>
+            <input type="text" id="firstName" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+            <label for="lastName" class="form-label">Last Name:</label>
+            <input type="text" id="lastName" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+            <label for="stLevel" class="form-label">Level:</label>
+            <select id="stLevel" class="form-select" required>
+                <option value="freshman">Freshman</option>
+                <option value="sophomore">Sophomore</option>
+                <option value="junior">Junior</option>
+                <option value="senior">Senior</option>
+                <option value="master">Master</option>
+                <option value="PhD">PhD</option>
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label for="gpa" class="form-label">GPA:</label>
+            <input type="number" id="gpa" class="form-control" required min="0" max="4.0" step="0.01">
+        </div>
+        <div class="col-md-6">
+            <label for="email" class="form-label">Email:</label>
+            <input type="email" id="email" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+            <label for="bdate" class="form-label">Birth Date:</label>
+            <input type="date" id="bdate" class="form-control" required>
+        </div>
+    </div>
+    <button type="button" class="btn btn-primary btn-custom">Submit</button>
+</form>
+
+<h2>Students List</h2>
+<button class="btn btn-info mb-3" onclick="loadStudents()">Load Students</button>
+<table id="studentsTable" class="table table-hover">
+    <thead>
+    <tr>
+        <th>B#</th>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Level</th>
+        <th>GPA</th>
+        <th>Email</th>
+        <th>Birth Date</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- Students will be loaded here dynamically -->
+    </tbody>
+</table>
+
+<script>
+    function loadStudents() {
+        fetch('/students/view')
+            .then(response => response.json())
+            .then(data => {
+                const table = document.getElementById('studentsTable').getElementsByTagName('tbody')[0];
+                table.innerHTML = '';
+                if (Array.isArray(data)) {
+                    data.reverse().forEach(student => {
+                        let row = table.insertRow();
+                        row.insertCell(0).innerHTML = student.id;
+                        row.insertCell(1).innerHTML = student.firstName;
+                        row.insertCell(2).innerHTML = student.lastName;
+                        row.insertCell(3).innerHTML = student.stLevel;
+                        row.insertCell(4).innerHTML = student.gpa.toFixed(2);
+                        row.insertCell(5).innerHTML = student.email;
+                        row.insertCell(6).innerHTML = student.bdate;
+                        let deleteCell = row.insertCell(7);
+                        deleteCell.innerHTML = `<button class='btn btn-danger' onclick="deleteStudent('${student.id}')">Delete</button>`;
+                    });
+                } else {
+                    alert('Received data is not an array');
+                }
+            })
+            .catch(error => alert('Error loading students: ' + error));
+    }
+
+    function addStudent() {
+        const form = document.getElementById('addStudentForm'); // Get the form element
+        const studentData = {
+            id: document.getElementById('id').value,
+            firstName: document.getElementById('firstName').value,
+            lastName: document.getElementById('lastName').value,
+            stLevel: document.getElementById('stLevel').value,
+            gpa: parseFloat(document.getElementById('gpa').value),
+            email: document.getElementById('email').value,
+            bdate: document.getElementById('bdate').value
+        };
+
+        axios.post('/students/insert', studentData)
+            .then(response => {
+                alert(response.data);
+                if (response.status === 200) {
+                    loadStudents();
+                    form.reset();
+                }
+            })
+            .catch(error => {
+                console.log(error);
+                if (error.response) {
+                    console.log(error.response.data);
+                    console.log(error.response.status);
+                    console.log(error.response.headers);
+                    alert('Error adding student: ' + error.response.data);  // Display specific server-sent error message
+                } else if (error.request) {
+                    console.log(error.request);
+                    alert('Error adding student: No response from server');
+                } else {
+                    console.log('Error', error.message);
+                    alert('Error adding student: ' + error.message);
+                }
+            });
+    }
+
+
+
+
+    function deleteStudent(bnum) {
+        console.log(bnum);
+        fetch(`/students/${bnum}`, {
+            method: 'DELETE',
+        })
+            .then(response => {
+                if (response.ok) {
+                    loadStudents();  // Reload the list after deletion
+                    alert('Student deleted successfully');
+                } else {
+                    alert('Failed to delete student');
+                }
+            })
+            .catch(error => alert('Error deleting student: ' + error));
+    }
+
+    document.getElementById('addStudentForm').addEventListener('click', function(event) {
+        if (event.target.className.includes('btn-custom')) {
+            addStudent();
+        }
+    });
+
+</script>
+</body>
+</html>

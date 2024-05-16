@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enrollment Management</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css">
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+<div class="container mt-3">
+    <h2>Students</h2>
+    <table id="studentsTable" class="table table-striped">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Level</th>
+            <th>GPA</th>
+            <th>Email</th>
+            <th>Birth Date</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Student data will be loaded here -->
+        </tbody>
+    </table>
+
+    <h2>Classes</h2>
+    <table id="classesTable" class="table table-striped">
+        <thead>
+        <tr>
+            <th>Class ID</th>
+            <th>Dept Code</th>
+            <th>Course Number</th>
+            <th>Section Number</th>
+            <th>Year</th>
+            <th>Semester</th>
+            <th>Limit</th>
+            <th>Class Size</th>
+            <th>Room</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Class data will be loaded here -->
+        </tbody>
+    </table>
+
+<!--    <h2>Enroll a Student</h2>-->
+<!--    <div>-->
+<!--        <label for="studentDropdown">Select Student:</label>-->
+<!--        <select id="studentDropdown" class="form-control">-->
+<!--            &lt;!&ndash; Student IDs will be loaded here &ndash;&gt;-->
+<!--        </select>-->
+
+<!--        <label for="classDropdown">Select Class:</label>-->
+<!--        <select id="classDropdown" class="form-control">-->
+<!--            &lt;!&ndash; Class IDs will be loaded here &ndash;&gt;-->
+<!--        </select>-->
+
+<!--        <button class="btn btn-primary mt-2" onclick="enrollStudent();">Enroll</button>-->
+<!--    </div>-->
+
+    <h2>Enroll a Student</h2>
+    <div>
+        <label for="studentIdInput">Enter Student ID:</label>
+        <input type="text" id="studentIdInput" class="form-control" placeholder="Student ID">
+
+        <label for="classIdInput">Enter Class ID:</label>
+        <input type="text" id="classIdInput" class="form-control" placeholder="Class ID">
+
+        <button class="btn btn-primary mt-2" onclick="enrollStudent();">Enroll</button>
+    </div>
+
+
+    <h2>Enrollments</h2>
+    <table id="enrollmentsTable" class="table table-striped">
+        <thead>
+        <tr>
+            <th>Student ID</th>
+            <th>Class ID</th>
+            <th>Score</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- Enrollments will be loaded here -->
+        </tbody>
+    </table>
+
+<!--    <h2>Drop a Student</h2>-->
+<!--    <div>-->
+<!--        <label for="studentDropDropdown">Select Student:</label>-->
+<!--        <select id="studentDropDropdown" class="form-control" required onchange="updateClassDropDown()">-->
+<!--            <option value="" >Select a student</option>-->
+<!--            &lt;!&ndash; Student IDs will be dynamically loaded here &ndash;&gt;-->
+<!--        </select>-->
+
+<!--        <label for="classDropDropdown">Select Class:</label>-->
+<!--        <select id="classDropDropdown" class="form-control" required disabled>-->
+<!--            <option value="" >Select a class</option>-->
+<!--            &lt;!&ndash; Class IDs will be dynamically loaded based on the selected student &ndash;&gt;-->
+<!--        </select>-->
+
+<!--        <button class="btn btn-danger mt-2" onclick="dropStudent();">Drop</button>-->
+<!--    </div>-->
+    <h2>Drop a Student</h2>
+    <div>
+        <label for="studentIdDropInput">Enter Student ID:</label>
+        <input type="text" id="studentIdDropInput" class="form-control" placeholder="Student ID" required>
+
+        <label for="classIdDropInput">Enter Class ID:</label>
+        <input type="text" id="classIdDropInput" class="form-control" placeholder="Class ID" required>
+
+        <button class="btn btn-danger mt-2" onclick="dropStudent();">Drop</button>
+    </div>
+
+
+
+</div>
+
+<script>
+    // let stuClassMap = {};
+
+    // function updateClassDropDown() {
+    //     const studentId = document.getElementById('studentDropDropdown').value;
+    //     const classSelect = document.getElementById('classDropDropdown');
+    //     classSelect.innerHTML = `<option value=""> Select Course </option>`;
+    //     if(stuClassMap[studentId]){
+    //         stuClassMap[studentId].forEach(classId =>{
+    //             const option = new Option(classId,classId);
+    //             classSelect.appendChild(option);
+    //         })
+    //     }
+    //     classSelect.disabled = false;
+    // }
+
+    function loadStudents() {
+        axios.get('/students/view').then(response => {
+            const students = response.data;
+            // const studentDropdown = document.getElementById('studentDropdown');
+            const studentsTableBody = document.getElementById('studentsTable').getElementsByTagName('tbody')[0];
+            studentsTableBody.innerHTML = '';
+            // studentDropdown.innerHTML = '';
+            students.forEach(student => {
+                const row = studentsTableBody.insertRow();
+                row.insertCell(0).textContent = student.id;
+                row.insertCell(1).textContent = student.firstName;
+                row.insertCell(2).textContent = student.lastName;
+                row.insertCell(3).textContent = student.stLevel;
+                row.insertCell(4).textContent = student.gpa.toFixed(2);
+                row.insertCell(5).textContent = student.email;
+                row.insertCell(6).textContent = student.bdate;
+
+
+                // Populate dropdown
+                const option = document.createElement('option');
+                option.value = student.id;
+                option.textContent = `${student.firstName} ${student.lastName} (${student.id})`;
+                // studentDropdown.appendChild(option);
+            });
+        }).catch(error => console.error('Error loading students:', error));
+    }
+
+    function loadClasses() {
+        axios.get('/classes/view').then(response => {
+            const classes = response.data;
+            // const classDropdown = document.getElementById('classDropdown');
+            const classesTableBody = document.getElementById('classesTable').getElementsByTagName('tbody')[0];
+            classesTableBody.innerHTML = '';
+            // classDropdown.innerHTML = '';
+            classes.forEach(cls => {
+                const row = classesTableBody.insertRow();
+                row.insertCell(0).innerHTML = cls.classId;
+                row.insertCell(1).innerHTML = cls.deptCode;
+                row.insertCell(2).innerHTML = cls.courseNumber;
+                row.insertCell(3).innerHTML = cls.sectionNumber;
+                row.insertCell(4).innerHTML = cls.year;
+                row.insertCell(5).innerHTML = cls.semester;
+                row.insertCell(6).innerHTML = cls.limit;
+                row.insertCell(7).innerHTML = cls.classSize;
+                row.insertCell(8).innerHTML = cls.room;
+                // Populate dropdown
+                // const option = document.createElement('option');
+                // option.value = cls.classId;
+                // option.textContent = `Class ${cls.classId} - Course: ${cls.deptCode} - ${cls.courseNumber}`;
+                // classDropdown.appendChild(option);
+            });
+        }).catch(error => console.error('Error loading classes:', error));
+    }
+
+    function enrollStudent() {
+        const studentId = document.getElementById('studentIdInput').value;
+        const classId = document.getElementById('classIdInput').value;
+        axios.post(`/students/enroll/${studentId}/${classId}`).then(response => {
+            alert('Student enrolled successfully');
+            loadEnrollments(); // Refresh enrollments table
+            loadClasses();
+        }).catch(error => alert('Error enrolling student: ' + error.response.data));
+    }
+
+    // Function to drop a student
+    function dropStudent() {
+        const studentId = document.getElementById('studentIdDropInput').value;
+        const classId = document.getElementById('classIdDropInput').value;
+        // Perform the drop operation
+        axios.post(`/students/drop/${studentId}/${classId}`)
+            .then(response => {
+                alert('Student dropped successfully');
+                loadClasses();
+                loadEnrollments();
+                delete stuClassMap[studentId];
+            })
+            .catch(error => alert('Error dropping student: ' + error.response.data));
+    }
+
+
+    function loadEnrollments() {
+        axios.get('/students/view/enrollment').then(response => {
+            const enrollments = response.data;
+            console.log(enrollments);
+            const enrollmentsTableBody = document.getElementById('enrollmentsTable').getElementsByTagName('tbody')[0];
+            enrollmentsTableBody.innerHTML = '';
+            // const stuSelect = document.getElementById('studentDropDropdown');
+            // stuSelect.innerHTML = `<option value=""> Select Student Id</option>`
+            // stuClassMap = {}; // Reset the map
+
+            enrollments.forEach(enrollment => {
+                const row = enrollmentsTableBody.insertRow();
+                row.insertCell(0).textContent = enrollment.studentId;
+                row.insertCell(1).textContent = enrollment.classId;
+                console.log(enrollment.score);
+                if(enrollment.score == null){row.insertCell(2).textContent = "0";}
+                else
+                {row.insertCell(2).textContent = enrollment.score;}
+
+                // if(!stuClassMap[enrollment.studentId]){
+                //     stuClassMap[enrollment.studentId] = [];
+                //     const option = document.createElement("option");
+                //     option.value = enrollment.studentId;
+                //     option.textContent = enrollment.studentId;
+                //     stuSelect.appendChild(option);
+                // }
+                // if(!stuClassMap[enrollment.studentId].includes(enrollment.classId)){
+                //     stuClassMap[enrollment.studentId].push(enrollment.classId);
+                // }
+            });
+        }).catch(error => console.error('Error loading enrollments:', error));
+    }
+
+
+
+    // Initial data load calls
+    document.addEventListener('DOMContentLoaded', function() {
+        loadStudents();
+        loadClasses();
+        loadEnrollments();
+        // updateClassDropDown();
+    });
+</script>
+
+</body>
+</html>
